@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💊</text></svg>">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>&#128138;</text></svg>">
 <style>html{color-scheme:light dark}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
 <title>人人藥品效期查詢</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700&display=swap">
@@ -119,9 +120,51 @@ tr:last-child td{border-bottom:0}
   .r-right{align-items:flex-start;text-align:left;flex-direction:row;align-items:center;gap:10px;margin-top:6px}
 }
 @media (prefers-reduced-motion:no-preference){.row{transition:border-color .12s ease}}
+
+/* ---- 密碼鎖 ---- */
+body.locked .wrap{display:none}
+#gate{
+  position:fixed;inset:0;z-index:100;display:none;
+  align-items:center;justify-content:center;padding:24px;
+  background:var(--ground);
+}
+body.locked #gate{display:flex}
+.gatecard{
+  width:100%;max-width:340px;background:var(--surface);
+  border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);
+  padding:28px 26px;text-align:center;
+}
+.gatecard .mark{font-size:30px;line-height:1}
+.gatecard h2{margin:12px 0 4px;font-size:18px;font-weight:700}
+.gatecard p{margin:0 0 18px;font-size:13px;color:var(--ink-3)}
+#pw{
+  width:100%;border:1px solid var(--line-strong);background:var(--surface-2);
+  color:var(--ink);border-radius:9px;padding:11px 13px;
+  font:500 17px/1.3 "IBM Plex Mono",monospace;text-align:center;letter-spacing:.25em;
+}
+#pw:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+#enter{
+  width:100%;margin-top:10px;border:0;border-radius:9px;cursor:pointer;
+  background:var(--accent);color:var(--ground);
+  font:600 15px/1 "IBM Plex Sans","Noto Sans TC",sans-serif;padding:12px;
+}
+#enter:hover{filter:brightness(1.08)}
+#enter:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+#gate-err{margin:12px 0 0;font-size:13px;color:var(--danger);min-height:1.2em}
 </style>
 </head>
-<body>
+<body class="locked">
+
+<div id="gate">
+  <form class="gatecard" id="gateform">
+    <div class="mark">&#128274;</div>
+    <h2>人人藥品效期查詢</h2>
+    <p>內部使用，請輸入密碼</p>
+    <input id="pw" type="password" inputmode="numeric" autocomplete="off" aria-label="密碼">
+    <button id="enter" type="submit">進入</button>
+    <p id="gate-err" role="alert"></p>
+  </form>
+</div>
 
 
 <div class="wrap">
@@ -252,6 +295,33 @@ document.getElementById('list').addEventListener('keydown',e=>{
   if((e.key==='Enter'||e.key===' ')&&e.target.classList.contains('row')){e.preventDefault();e.target.classList.toggle('open');}
 });
 render();
+</script>
+
+<script>
+(function(){
+  var PW = "111", KEY = 'rr-drug-ok';
+  var b = document.body;
+  function unlock(){ b.classList.remove('locked'); }
+  if(sessionStorage.getItem(KEY) === '1'){ unlock(); }
+  else {
+    b.classList.add('locked');
+    var f = document.getElementById('gateform'),
+        pw = document.getElementById('pw'),
+        err = document.getElementById('gate-err');
+    setTimeout(function(){ pw.focus(); }, 60);
+    f.addEventListener('submit', function(e){
+      e.preventDefault();
+      if(pw.value === PW){
+        try{ sessionStorage.setItem(KEY,'1'); }catch(_){}
+        err.textContent = '';
+        unlock();
+      } else {
+        err.textContent = '密碼不正確，請再試一次。';
+        pw.value = ''; pw.focus();
+      }
+    });
+  }
+})();
 </script>
 
 </body>
